@@ -210,6 +210,33 @@
 				flex-direction: column;
 				gap: 2px;
 				min-width: 120px;
+				position: relative;
+			}
+
+			.floating-item::after {
+				content: attr(data-tooltip);
+				position: absolute;
+				left: 50%;
+				bottom: 120%;
+				transform: translateX(-50%) translateY(8px);
+				background: rgba(8, 14, 26, 0.92);
+				border: 1px solid rgba(228, 192, 122, 0.35);
+				color: var(--text-primary);
+				padding: 6px 10px;
+				border-radius: 10px;
+				font-size: 0.65rem;
+				letter-spacing: 0.12em;
+				text-transform: uppercase;
+				white-space: nowrap;
+				opacity: 0;
+				pointer-events: none;
+				transition: opacity 0.2s ease, transform 0.2s ease;
+			}
+
+			.floating-item:hover::after,
+			.floating-item:focus-within::after {
+				opacity: 1;
+				transform: translateX(-50%) translateY(0);
 			}
 
 			.floating-item span {
@@ -284,6 +311,39 @@
 				background: rgba(10, 17, 32, 0.7);
 				border: 1px solid rgba(228, 192, 122, 0.12);
 				transition: border-color 0.3s ease, box-shadow 0.3s ease;
+			}
+
+			.module-row--high {
+				border-color: rgba(228, 192, 122, 0.45);
+				background: linear-gradient(120deg, rgba(28, 22, 8, 0.6), rgba(10, 17, 32, 0.7));
+			}
+
+			.module-row--high .coef-pill {
+				background: rgba(241, 217, 156, 0.24);
+				border-color: rgba(241, 217, 156, 0.6);
+				color: #f7e4b8;
+			}
+
+			.module-row--medium {
+				border-color: rgba(120, 210, 230, 0.35);
+				background: linear-gradient(120deg, rgba(12, 28, 36, 0.65), rgba(10, 17, 32, 0.7));
+			}
+
+			.module-row--medium .coef-pill {
+				background: rgba(120, 210, 230, 0.18);
+				border-color: rgba(120, 210, 230, 0.5);
+				color: #cfefff;
+			}
+
+			.module-row--low {
+				border-color: rgba(188, 150, 255, 0.25);
+				background: linear-gradient(120deg, rgba(22, 12, 36, 0.65), rgba(10, 17, 32, 0.7));
+			}
+
+			.module-row--low .coef-pill {
+				background: rgba(188, 150, 255, 0.18);
+				border-color: rgba(188, 150, 255, 0.4);
+				color: #e2d3ff;
 			}
 
 			.module-row:hover {
@@ -1079,7 +1139,13 @@
 
 					semester.modules.forEach((module, moduleIndex) => {
 						const row = document.createElement("div");
-						row.className = "module-row";
+						let tierClass = "module-row--low";
+						if (module.coefficient >= 5) {
+							tierClass = "module-row--high";
+						} else if (module.coefficient >= 3) {
+							tierClass = "module-row--medium";
+						}
+						row.className = `module-row ${tierClass}`;
 						row.dataset.semester = semIndex;
 						row.dataset.module = moduleIndex;
 						row.innerHTML = `
@@ -1168,6 +1234,8 @@
 				const summaryFinal = document.getElementById("summary-final");
 				const summaryWeighted = document.getElementById("summary-weighted");
 				const summaryStatus = document.getElementById("summary-status");
+				const floatingLeftItem = document.getElementById("floating-left");
+				const floatingRightItem = document.getElementById("floating-right");
 				const floatingLeftValue = document.getElementById("floating-left-value");
 				const floatingRightValue = document.getElementById("floating-right-value");
 				const floatingLeftLabel = document.getElementById("floating-left-label");
@@ -1199,6 +1267,10 @@
 				if (activeSemester === "s2") {
 					floatingLeftLabel.textContent = "General";
 					floatingRightLabel.textContent = "Semester 2";
+					floatingLeftItem.dataset.tooltip = "Moyenne generale";
+					floatingRightItem.dataset.tooltip = "Moyenne semestre 2";
+					floatingLeftItem.title = "Moyenne generale";
+					floatingRightItem.title = "Moyenne semestre 2";
 					animateNumber(floatingLeftValue, finalAverage, 2);
 					animateNumber(floatingRightValue, sem2Stats.average, 2);
 					setBadge(floatingLeftValue, finalAverage);
@@ -1206,6 +1278,10 @@
 				} else {
 					floatingLeftLabel.textContent = "Semester 1";
 					floatingRightLabel.textContent = "General";
+					floatingLeftItem.dataset.tooltip = "Moyenne semestre 1";
+					floatingRightItem.dataset.tooltip = "Moyenne generale";
+					floatingLeftItem.title = "Moyenne semestre 1";
+					floatingRightItem.title = "Moyenne generale";
 					animateNumber(floatingLeftValue, sem1Stats.average, 2);
 					animateNumber(floatingRightValue, finalAverage, 2);
 					setBadge(floatingLeftValue, sem1Stats.average);
