@@ -142,13 +142,25 @@
 			}
 
 			.meta-chip {
+				appearance: none;
+				cursor: pointer;
+				border: 1px solid rgba(228, 192, 122, 0.35);
 				padding: 10px 16px;
 				border-radius: 999px;
-				border: 1px solid rgba(228, 192, 122, 0.35);
 				background: rgba(228, 192, 122, 0.08);
 				color: var(--gold-400);
 				font-size: 0.85rem;
 				font-weight: 600;
+				transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+			}
+
+			.meta-chip:hover {
+				background: rgba(228, 192, 122, 0.18);
+				box-shadow: 0 0 16px rgba(228, 192, 122, 0.25);
+			}
+
+			.meta-chip:active {
+				transform: scale(0.97);
 			}
 
 			.section-card {
@@ -161,6 +173,7 @@
 				display: flex;
 				flex-direction: column;
 				gap: 20px;
+				scroll-margin-top: 24px;
 			}
 
 			.floating-summary {
@@ -333,12 +346,14 @@
 				border: 1px solid rgba(228, 192, 122, 0.25);
 				border-radius: 999px;
 				padding: 6px 10px;
-				min-width: 130px;
+				width: 180px;
+				min-width: 180px;
+				max-width: 180px;
 				justify-content: space-between;
 			}
 
 			.control-input {
-				width: 64px;
+				width: 72px;
 				background: transparent;
 				border: none;
 				color: var(--text-primary);
@@ -346,6 +361,8 @@
 				text-align: center;
 				outline: none;
 				appearance: textfield;
+				font-variant-numeric: tabular-nums;
+				font-feature-settings: "tnum";
 			}
 
 			.control--emd {
@@ -398,6 +415,8 @@
 				min-width: 48px;
 				text-align: center;
 				font-weight: 600;
+				font-variant-numeric: tabular-nums;
+				font-feature-settings: "tnum";
 			}
 
 			.value--pulse {
@@ -523,13 +542,14 @@
 				}
 
 				.control {
-					min-width: 160px;
+					min-width: 200px;
+					max-width: 240px;
 					width: 100%;
 					justify-content: center;
 				}
 
 				.control-input {
-					width: 84px;
+					width: 96px;
 					font-size: 1rem;
 				}
 
@@ -645,13 +665,19 @@
 					  <p>Department of Computer Science - Academic Year 2025-2026</p>
 				</div>
 				<div class="hero-meta">
-					<div class="meta-chip">Semester 1 + Semester 2</div>
-					<div class="meta-chip">Luxury Performance Tracker</div>
-					<div class="meta-chip">Live Grade Controls</div>
+					<button class="meta-chip" type="button" data-scroll-target="#semester-1-section">
+						Semester 1
+					</button>
+					<button class="meta-chip" type="button" data-scroll-target="#semester-2-section">
+						Semester 2
+					</button>
+					<button class="meta-chip" type="button" data-scroll-target="#summary-section">
+						Final Summary
+					</button>
 				</div>
 			</header>
 
-			<section class="section-card" aria-label="Semester 1">
+			<section class="section-card" aria-label="Semester 1" id="semester-1-section">
 				<div class="section-header">
 					<h2>Semester 1</h2>
 					<div class="stat-group">
@@ -668,7 +694,7 @@
 				<div class="module-table" id="semester-1-modules"></div>
 			</section>
 
-			<section class="section-card" aria-label="Semester 2">
+			<section class="section-card" aria-label="Semester 2" id="semester-2-section">
 				<div class="section-header">
 					<h2>Semester 2</h2>
 					<div class="stat-group">
@@ -685,7 +711,7 @@
 				<div class="module-table" id="semester-2-modules"></div>
 			</section>
 
-			<section class="section-card" aria-label="Yearly Summary">
+			<section class="section-card" aria-label="Yearly Summary" id="summary-section">
 				<div class="section-header">
 					<h2>Yearly Summary</h2>
 				</div>
@@ -1213,6 +1239,20 @@
 				updateAll();
 			}
 
+			function handleMetaChipClick(event) {
+				const trigger = event.target.closest("[data-scroll-target]");
+				if (!trigger) {
+					return;
+				}
+
+				const target = document.querySelector(trigger.dataset.scrollTarget);
+				if (!target) {
+					return;
+				}
+
+				target.scrollIntoView({ behavior: "smooth", block: "start" });
+			}
+
 			function handleInputBlur(event) {
 				const input = event.target.closest(".control-input");
 				if (!input) {
@@ -1267,6 +1307,7 @@
 			}
 
 			document.addEventListener("click", handleStepClick);
+			document.addEventListener("click", handleMetaChipClick);
 			document.addEventListener("blur", handleInputBlur, true);
 			document.addEventListener("keydown", handleInputKeydown);
 
