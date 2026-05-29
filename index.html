@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Premium Academic Calculator</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Manrope:wght@300;400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+		<style>
+			:root {
+				color-scheme: dark;
+				--navy-950: #050a16;
+				--navy-900: #0a1428;
+				--navy-800: #111f3b;
+				--navy-700: #172a4a;
+				--gold-600: #d3a85c;
+				--gold-500: #e4c07a;
+				--gold-400: #f1d99c;
+				--glass: rgba(12, 20, 36, 0.72);
+				--glass-strong: rgba(16, 24, 42, 0.88);
+				--line: rgba(228, 192, 122, 0.18);
+				--text-primary: #f7f0de;
+				--text-muted: rgba(247, 240, 222, 0.64);
+				--text-dim: rgba(247, 240, 222, 0.45);
+				--shadow: 0 28px 60px rgba(5, 8, 18, 0.45);
+				--radius-lg: 24px;
+				--radius-md: 16px;
+				--radius-sm: 12px;
+				--step: 0.25;
+			}
+
+			* {
+				box-sizing: border-box;
+				margin: 0;
+				padding: 0;
+			}
+
+			body {
+				min-height: 100vh;
+				background: radial-gradient(1200px 800px at 10% 0%, #1b2c54 0%, transparent 55%),
+					radial-gradient(900px 600px at 90% 10%, #1a2038 0%, transparent 60%),
+					linear-gradient(180deg, var(--navy-950) 0%, var(--navy-900) 100%);
+				color: var(--text-primary);
+				font-family: "Manrope", "Segoe UI", sans-serif;
+				letter-spacing: 0.01em;
+				position: relative;
+				overflow-x: hidden;
+			}
+
+			body::before {
+				content: "";
+				position: fixed;
+				inset: 0;
+				background: radial-gradient(600px 300px at 50% 0%, rgba(228, 192, 122, 0.18), transparent 70%),
+					radial-gradient(400px 200px at 85% 90%, rgba(228, 192, 122, 0.15), transparent 70%);
+				opacity: 0.8;
+				pointer-events: none;
+				z-index: 0;
+			}
+
+			.page-loader {
+				position: fixed;
+				top: 0;
+				left: 0;
+				right: 0;
+				height: 3px;
+				background: linear-gradient(90deg, transparent, var(--gold-500), transparent);
+				animation: loader-sweep 1.6s ease-in-out infinite;
+				z-index: 5;
+			}
+
+			body.loaded .page-loader {
+				opacity: 0;
+				animation-play-state: paused;
+				transition: opacity 0.5s ease;
+			}
+
+			@keyframes loader-sweep {
+				0% {
+					transform: translateX(-100%);
+				}
+				100% {
+					transform: translateX(100%);
+				}
+			}
+
+			.page {
+				position: relative;
+				z-index: 1;
+				max-width: 1200px;
+				margin: 0 auto;
+				padding: 48px 24px 64px;
+				display: flex;
+				flex-direction: column;
+				gap: 32px;
+			}
+
+			.hero {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 24px;
+				align-items: center;
+				justify-content: space-between;
+				padding: 32px;
+				border-radius: var(--radius-lg);
+				background: var(--glass);
+				border: 1px solid var(--line);
+				box-shadow: var(--shadow);
+				backdrop-filter: blur(20px);
+			}
+
+			.hero h1 {
+				font-family: "Cinzel", "Times New Roman", serif;
+				font-weight: 700;
+				font-size: clamp(2rem, 4vw, 3.2rem);
+				letter-spacing: 0.08em;
+				text-transform: uppercase;
+				color: var(--gold-400);
+			}
+
+			.hero p {
+				margin-top: 12px;
+				color: var(--text-muted);
+				font-size: 1rem;
+			}
+
+			.hero .eyebrow {
+				text-transform: uppercase;
+				letter-spacing: 0.3em;
+				color: var(--text-dim);
+				font-size: 0.75rem;
+			}
+
+			.hero-meta {
+				display: flex;
+				gap: 16px;
+				flex-wrap: wrap;
+			}
+
+			.meta-chip {
+				padding: 10px 16px;
+				border-radius: 999px;
+				border: 1px solid rgba(228, 192, 122, 0.35);
+				background: rgba(228, 192, 122, 0.08);
+				color: var(--gold-400);
+				font-size: 0.85rem;
+				font-weight: 600;
+			}
+
+			.section-card {
+				border-radius: var(--radius-lg);
+				background: var(--glass-strong);
+				border: 1px solid var(--line);
+				box-shadow: var(--shadow);
+				backdrop-filter: blur(20px);
+				padding: 28px;
+				display: flex;
+				flex-direction: column;
+				gap: 20px;
+			}
+
+			.section-header {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 16px;
+				align-items: center;
+				justify-content: space-between;
+			}
+
+			.section-header h2 {
+				font-family: "Cinzel", "Times New Roman", serif;
+				letter-spacing: 0.1em;
+				font-size: 1.4rem;
+				color: var(--gold-400);
+				text-transform: uppercase;
+			}
+
+			.stat-group {
+				display: flex;
+				gap: 16px;
+				flex-wrap: wrap;
+			}
+
+			.stat {
+				background: rgba(8, 14, 27, 0.65);
+				border: 1px solid rgba(228, 192, 122, 0.2);
+				padding: 10px 16px;
+				border-radius: var(--radius-sm);
+				display: flex;
+				flex-direction: column;
+				gap: 6px;
+				min-width: 140px;
+			}
+
+			.stat span {
+				font-size: 0.75rem;
+				color: var(--text-dim);
+				text-transform: uppercase;
+				letter-spacing: 0.18em;
+			}
+
+			.stat strong {
+				font-size: 1.1rem;
+				color: var(--text-primary);
+			}
+
+			.module-table {
+				display: flex;
+				flex-direction: column;
+				gap: 12px;
+			}
+
+			.module-row {
+				display: grid;
+				grid-template-columns: minmax(180px, 2.2fr) 0.6fr repeat(3, 1fr) 1fr 1.1fr;
+				gap: 12px;
+				padding: 16px;
+				border-radius: var(--radius-md);
+				background: rgba(10, 17, 32, 0.7);
+				border: 1px solid rgba(228, 192, 122, 0.12);
+				transition: border-color 0.3s ease, box-shadow 0.3s ease;
+			}
+
+			.module-row:hover {
+				border-color: rgba(228, 192, 122, 0.4);
+				box-shadow: 0 12px 30px rgba(3, 6, 15, 0.4);
+			}
+
+			.module-row--header {
+				background: transparent;
+				border: none;
+				padding: 0 8px;
+				text-transform: uppercase;
+				letter-spacing: 0.15em;
+				font-size: 0.7rem;
+				color: var(--text-dim);
+			}
+
+			.module-row--header .cell {
+				font-weight: 600;
+			}
+
+			.cell {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				color: var(--text-primary);
+				font-size: 0.95rem;
+			}
+
+			.cell--name {
+				flex-direction: column;
+				align-items: flex-start;
+				gap: 6px;
+			}
+
+			.module-title {
+				font-weight: 600;
+				font-size: 1rem;
+			}
+
+			.module-meta {
+				font-size: 0.8rem;
+				color: var(--text-dim);
+			}
+
+			.coef-pill {
+				padding: 6px 10px;
+				border-radius: 10px;
+				background: rgba(228, 192, 122, 0.14);
+				border: 1px solid rgba(228, 192, 122, 0.3);
+				color: var(--gold-400);
+				font-weight: 600;
+			}
+
+			.control {
+				display: inline-flex;
+				align-items: center;
+				gap: 10px;
+				background: rgba(7, 12, 22, 0.7);
+				border: 1px solid rgba(228, 192, 122, 0.25);
+				border-radius: 999px;
+				padding: 6px 10px;
+				min-width: 130px;
+				justify-content: space-between;
+			}
+
+			.control-input {
+				width: 64px;
+				background: transparent;
+				border: none;
+				color: var(--text-primary);
+				font-weight: 600;
+				text-align: center;
+				outline: none;
+				appearance: textfield;
+			}
+
+			.control-input::-webkit-outer-spin-button,
+			.control-input::-webkit-inner-spin-button {
+				appearance: none;
+				margin: 0;
+			}
+
+			.control--disabled {
+				opacity: 0.5;
+				border-style: dashed;
+			}
+
+			.btn-step {
+				width: 30px;
+				height: 30px;
+				border-radius: 999px;
+				border: 1px solid rgba(228, 192, 122, 0.4);
+				background: rgba(228, 192, 122, 0.08);
+				color: var(--gold-400);
+				font-weight: 700;
+				cursor: pointer;
+				transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+			}
+
+			.btn-step:hover {
+				background: rgba(228, 192, 122, 0.2);
+				box-shadow: 0 0 12px rgba(228, 192, 122, 0.35);
+			}
+
+			.btn-step:active {
+				transform: scale(0.92);
+			}
+
+			.value {
+				min-width: 48px;
+				text-align: center;
+				font-weight: 600;
+			}
+
+			.value--pulse {
+				animation: pulse 0.35s ease;
+			}
+
+			@keyframes pulse {
+				0% {
+					transform: scale(1);
+					text-shadow: none;
+				}
+				50% {
+					transform: scale(1.05);
+					text-shadow: 0 0 12px rgba(228, 192, 122, 0.45);
+				}
+				100% {
+					transform: scale(1);
+					text-shadow: none;
+				}
+			}
+
+			.badge {
+				padding: 6px 12px;
+				border-radius: 999px;
+				font-weight: 700;
+				border: 1px solid transparent;
+				transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+			}
+
+			.badge--red {
+				background: rgba(90, 16, 16, 0.45);
+				color: #ffb3a3;
+				border-color: rgba(255, 120, 120, 0.4);
+			}
+
+			.badge--orange {
+				background: rgba(120, 74, 22, 0.45);
+				color: #ffd39c;
+				border-color: rgba(255, 185, 90, 0.4);
+			}
+
+			.badge--green {
+				background: rgba(18, 88, 48, 0.45);
+				color: #c1f0c9;
+				border-color: rgba(120, 240, 170, 0.4);
+			}
+
+			.summary-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+				gap: 16px;
+			}
+
+			.summary-item {
+				padding: 18px;
+				border-radius: var(--radius-md);
+				background: rgba(8, 14, 26, 0.7);
+				border: 1px solid rgba(228, 192, 122, 0.15);
+				display: flex;
+				flex-direction: column;
+				gap: 8px;
+			}
+
+			.summary-item span {
+				font-size: 0.7rem;
+				text-transform: uppercase;
+				letter-spacing: 0.2em;
+				color: var(--text-dim);
+			}
+
+			.summary-item strong {
+				font-size: 1.35rem;
+			}
+
+			.footnote {
+				color: var(--text-dim);
+				font-size: 0.8rem;
+				text-align: center;
+			}
+
+			@media (max-width: 980px) {
+				.module-row {
+					grid-template-columns: minmax(200px, 2fr) 0.6fr repeat(2, 1fr) 1fr 1fr;
+				}
+			}
+
+			@media (max-width: 820px) {
+				.hero {
+					padding: 24px;
+				}
+
+				.module-row,
+				.module-row--header {
+					grid-template-columns: 1fr;
+				}
+
+				.module-row--header {
+					display: none;
+				}
+
+				.module-row {
+					gap: 10px;
+				}
+
+				.cell {
+					justify-content: space-between;
+				}
+
+				.cell::before {
+					content: attr(data-label);
+					font-size: 0.7rem;
+					text-transform: uppercase;
+					letter-spacing: 0.2em;
+					color: var(--text-dim);
+				}
+
+				.cell--name {
+					align-items: flex-start;
+				}
+
+				.cell--name::before {
+					content: "Module";
+				}
+
+				.control {
+					min-width: 160px;
+					width: 100%;
+					justify-content: center;
+				}
+
+				.control-input {
+					width: 84px;
+					font-size: 1rem;
+				}
+
+				.btn-step {
+					width: 34px;
+					height: 34px;
+				}
+			}
+
+			@media (max-width: 520px) {
+				.page {
+					padding: 32px 16px 48px;
+				}
+
+				.hero-meta {
+					width: 100%;
+				}
+
+				.meta-chip {
+					flex: 1 1 100%;
+					text-align: center;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<div class="page-loader" aria-hidden="true"></div>
+		<div class="page">
+			<header class="hero">
+				<div>
+					<div class="eyebrow">Academic Dashboard</div>
+					<h1>Student Name</h1>
+					  <p>Department of Computer Science - Academic Year 2025-2026</p>
+				</div>
+				<div class="hero-meta">
+					<div class="meta-chip">Semester 1 + Semester 2</div>
+					<div class="meta-chip">Luxury Performance Tracker</div>
+					<div class="meta-chip">Live Grade Controls</div>
+				</div>
+			</header>
+
+			<section class="section-card" aria-label="Semester 1">
+				<div class="section-header">
+					<h2>Semester 1</h2>
+					<div class="stat-group">
+						<div class="stat">
+							<span>Average</span>
+							<strong class="badge" id="sem1-average">--</strong>
+						</div>
+						<div class="stat">
+							<span>Weighted Score</span>
+							<strong id="sem1-weighted">--</strong>
+						</div>
+					</div>
+				</div>
+				<div class="module-table" id="semester-1-modules"></div>
+			</section>
+
+			<section class="section-card" aria-label="Semester 2">
+				<div class="section-header">
+					<h2>Semester 2</h2>
+					<div class="stat-group">
+						<div class="stat">
+							<span>Average</span>
+							<strong class="badge" id="sem2-average">--</strong>
+						</div>
+						<div class="stat">
+							<span>Weighted Score</span>
+							<strong id="sem2-weighted">--</strong>
+						</div>
+					</div>
+				</div>
+				<div class="module-table" id="semester-2-modules"></div>
+			</section>
+
+			<section class="section-card" aria-label="Yearly Summary">
+				<div class="section-header">
+					<h2>Yearly Summary</h2>
+				</div>
+				<div class="summary-grid">
+					<div class="summary-item">
+						<span>Semester 1 Average</span>
+						<strong class="badge" id="summary-sem1">--</strong>
+					</div>
+					<div class="summary-item">
+						<span>Semester 2 Average</span>
+						<strong class="badge" id="summary-sem2">--</strong>
+					</div>
+					<div class="summary-item">
+						<span>Final Yearly Average</span>
+						<strong class="badge" id="summary-final">--</strong>
+					</div>
+					<div class="summary-item">
+						<span>Total Weighted Score</span>
+						<strong id="summary-weighted">--</strong>
+					</div>
+					<div class="summary-item">
+						<span>Admission Status</span>
+						<strong class="badge" id="summary-status">--</strong>
+					</div>
+				</div>
+			</section>
+
+			<div class="footnote">All values update instantly using the official Excel formulas.</div>
+		</div>
+
+		<script>
+			const STEP = 0.25;
+			const MIN_GRADE = 0;
+			const MAX_GRADE = 20;
+			const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+			const semesters = [
+				{
+					name: "Semester 1",
+					containerId: "semester-1-modules",
+					averageId: "sem1-average",
+					weightedId: "sem1-weighted",
+					modules: [
+						{
+							name: "Theorie de l'information et codage",
+							meta: "Core module",
+							coefficient: 5,
+							ecd: 4.5,
+							tp: 14,
+							emd: 13,
+						},
+						{
+							name: "Communications Numeriques",
+							meta: "Signal track",
+							coefficient: 5,
+							ecd: 11.5,
+							tp: 11.66,
+							emd: 5.31,
+						},
+						{
+							name: "Communications unifiees et NGN",
+							meta: "Networks",
+							coefficient: 5,
+							ecd: null,
+							tp: 15,
+							emd: 9.25,
+						},
+						{
+							name: "Cyber Securite",
+							meta: "Security",
+							coefficient: 4,
+							ecd: null,
+							tp: 13.5,
+							emd: 14,
+						},
+						{
+							name: "Technologies Web 2",
+							meta: "Digital platforms",
+							coefficient: 4,
+							ecd: null,
+							tp: 13,
+							emd: 5,
+						},
+						{
+							name: "Projet 1",
+							meta: "Project studio",
+							coefficient: 3,
+							ecd: 12.2,
+							tp: null,
+							emd: 12.2,
+						},
+						{
+							name: "Economie et strategies d'entreprises",
+							meta: "Business",
+							coefficient: 3,
+							ecd: 11,
+							tp: null,
+							emd: 13,
+						},
+						{
+							name: "Management de Projet",
+							meta: "Leadership",
+							coefficient: 2,
+							ecd: 13.5,
+							tp: null,
+							emd: 13.5,
+						},
+						{
+							name: "Anglais 6",
+							meta: "Communication",
+							coefficient: 2,
+							ecd: 17,
+							tp: null,
+							emd: 16,
+						},
+					],
+				},
+				{
+					name: "Semester 2",
+					containerId: "semester-2-modules",
+					averageId: "sem2-average",
+					weightedId: "sem2-weighted",
+					modules: [
+						{
+							name: "Radio communications",
+							meta: "Wireless",
+							coefficient: 5,
+							ecd: 11,
+							tp: 11,
+							emd: 1,
+						},
+						{
+							name: "Infrastructure des telecommunications & Techniques d'Acces",
+							meta: "Telecom",
+							coefficient: 5,
+							ecd: null,
+							tp: 12,
+							emd: 3,
+						},
+						{
+							name: "DataCenter",
+							meta: "Systems",
+							coefficient: 5,
+							ecd: null,
+							tp: 12,
+							emd: 12,
+						},
+						{
+							name: "Composants photoniques pour telecoms optiques",
+							meta: "Optics",
+							coefficient: 4,
+							ecd: null,
+							tp: 11,
+							emd: 6,
+						},
+						{
+							name: "Programmation reseaux",
+							meta: "Networking",
+							coefficient: 4,
+							ecd: null,
+							tp: 11,
+							emd: 1,
+						},
+						{
+							name: "Communication multimedia",
+							meta: "Media",
+							coefficient: 3,
+							ecd: null,
+							tp: 12,
+							emd: 12,
+						},
+						{
+							name: "Optimisation numerique",
+							meta: "Numerical methods",
+							coefficient: 3,
+							ecd: null,
+							tp: 5,
+							emd: 5,
+						},
+						{
+							name: "Stage de decouverte de l'entreprise",
+							meta: "Internship",
+							coefficient: 1,
+							ecd: null,
+							tp: null,
+							emd: 13,
+						},
+						{
+							name: "Projet 2",
+							meta: "Project studio",
+							coefficient: 2,
+							ecd: 11,
+							tp: null,
+							emd: 11,
+						},
+						{
+							name: "Anglais 7",
+							meta: "Communication",
+							coefficient: 2,
+							ecd: 12,
+							tp: null,
+							emd: 12,
+						},
+					],
+				},
+			];
+
+			const animationMap = new WeakMap();
+
+			function clampToStep(value) {
+				const clamped = Math.min(MAX_GRADE, Math.max(MIN_GRADE, value));
+				return Math.round(clamped / STEP) * STEP;
+			}
+
+			function formatGrade(value) {
+				return value.toFixed(2);
+			}
+
+			function setBadge(el, value) {
+				el.classList.remove("badge--red", "badge--orange", "badge--green");
+				if (value < 10) {
+					el.classList.add("badge--red");
+				} else if (value < 12) {
+					el.classList.add("badge--orange");
+				} else {
+					el.classList.add("badge--green");
+				}
+			}
+
+			function animateNumber(el, value, decimals = 2) {
+				const previous = Number(el.dataset.value ?? "0");
+				if (Number.isNaN(previous) || prefersReducedMotion) {
+					if (el.tagName === "INPUT") {
+						el.value = value.toFixed(decimals);
+					} else {
+						el.textContent = value.toFixed(decimals);
+					}
+					el.dataset.value = value;
+					return;
+				}
+
+				if (previous === value) {
+					return;
+				}
+
+				if (animationMap.has(el)) {
+					cancelAnimationFrame(animationMap.get(el));
+				}
+
+				const start = performance.now();
+				const duration = 420;
+				const delta = value - previous;
+
+				function stepFrame(now) {
+					const progress = Math.min((now - start) / duration, 1);
+					const eased = 1 - Math.pow(1 - progress, 3);
+					const current = previous + delta * eased;
+					if (el.tagName === "INPUT") {
+						el.value = current.toFixed(decimals);
+					} else {
+						el.textContent = current.toFixed(decimals);
+					}
+					if (progress < 1) {
+						animationMap.set(el, requestAnimationFrame(stepFrame));
+					}
+				}
+
+				el.dataset.value = value;
+				el.classList.remove("value--pulse");
+				void el.offsetWidth;
+				el.classList.add("value--pulse");
+				animationMap.set(el, requestAnimationFrame(stepFrame));
+			}
+
+			function computeModuleAverage(module) {
+				const hasEcd = module.ecd !== null && module.ecd !== undefined;
+				const hasTp = module.tp !== null && module.tp !== undefined;
+				const hasEmd = module.emd !== null && module.emd !== undefined;
+
+				// Excel rules for module averages:
+				// Case 1: ECD + TP + EMD => 0.2 ECD + 0.2 TP + 0.6 EMD
+				// Case 2: ECD + EMD      => 0.4 ECD + 0.6 EMD
+				// Case 3: TP + EMD       => 0.4 TP + 0.6 EMD
+				// Case 4: EMD only       => EMD
+				if (hasEcd && hasTp && hasEmd) {
+					return module.ecd * 0.2 + module.tp * 0.2 + module.emd * 0.6;
+				}
+				if (hasEcd && !hasTp && hasEmd) {
+					return module.ecd * 0.4 + module.emd * 0.6;
+				}
+				if (!hasEcd && hasTp && hasEmd) {
+					return module.tp * 0.4 + module.emd * 0.6;
+				}
+				if (!hasEcd && !hasTp && hasEmd) {
+					return module.emd;
+				}
+				return 0;
+			}
+
+			function computeSemesterStats(semester) {
+				let weightedSum = 0;
+				let coefficientSum = 0;
+				semester.modules.forEach((module) => {
+					const avg = computeModuleAverage(module);
+					weightedSum += avg * module.coefficient;
+					coefficientSum += module.coefficient;
+				});
+
+				// Semester average = sum(weighted scores) / sum(coefficients)
+				return {
+					weightedSum,
+					coefficientSum,
+					average: coefficientSum ? weightedSum / coefficientSum : 0,
+				};
+			}
+
+			function createControl({ semIndex, moduleIndex, noteKey, value }) {
+				if (value === null || value === undefined) {
+					return `
+						<div class="control control--disabled" aria-disabled="true">
+							<span class="value" data-role="note">N/A</span>
+						</div>
+					`;
+				}
+
+				return `
+					<div class="control" data-sem="${semIndex}" data-module="${moduleIndex}" data-note="${noteKey}">
+						<button class="btn-step" data-dir="-1" aria-label="Decrease ${noteKey}">-</button>
+						<input
+							class="control-input value"
+							type="number"
+							inputmode="decimal"
+							min="${MIN_GRADE}"
+							max="${MAX_GRADE}"
+							step="${STEP}"
+							value="${formatGrade(value)}"
+							data-role="note"
+							aria-label="${noteKey} value"
+						/>
+						<button class="btn-step" data-dir="1" aria-label="Increase ${noteKey}">+</button>
+					</div>
+				`;
+			}
+
+			function renderSemesters() {
+				const headerRow = `
+					<div class="module-row module-row--header">
+						<div class="cell">Module</div>
+						<div class="cell">Coef</div>
+						<div class="cell">ECD</div>
+						<div class="cell">TP</div>
+						<div class="cell">EMD</div>
+						<div class="cell">Average</div>
+						<div class="cell">Weighted</div>
+					</div>
+				`;
+
+				semesters.forEach((semester, semIndex) => {
+					const container = document.getElementById(semester.containerId);
+					container.innerHTML = headerRow;
+
+					semester.modules.forEach((module, moduleIndex) => {
+						const row = document.createElement("div");
+						row.className = "module-row";
+						row.dataset.semester = semIndex;
+						row.dataset.module = moduleIndex;
+						row.innerHTML = `
+							<div class="cell cell--name" data-label="Module">
+								<div class="module-title">${module.name}</div>
+								<div class="module-meta">${module.meta}</div>
+							</div>
+							<div class="cell" data-label="Coef">
+								<span class="coef-pill">${module.coefficient}</span>
+							</div>
+							<div class="cell" data-label="ECD">
+								${createControl({ semIndex, moduleIndex, noteKey: "ecd", value: module.ecd })}
+							</div>
+							<div class="cell" data-label="TP">
+								${createControl({ semIndex, moduleIndex, noteKey: "tp", value: module.tp })}
+							</div>
+							<div class="cell" data-label="EMD">
+								${createControl({ semIndex, moduleIndex, noteKey: "emd", value: module.emd })}
+							</div>
+							<div class="cell" data-label="Average">
+								<span class="badge value" data-role="module-average">--</span>
+							</div>
+							<div class="cell" data-label="Weighted">
+								<span class="value" data-role="module-weighted">--</span>
+							</div>
+						`;
+
+						container.appendChild(row);
+						module.elements = {
+							row,
+							ecd: row.querySelector('[data-note="ecd"] [data-role="note"]'),
+							tp: row.querySelector('[data-note="tp"] [data-role="note"]'),
+							emd: row.querySelector('[data-note="emd"] [data-role="note"]'),
+							average: row.querySelector('[data-role="module-average"]'),
+							weighted: row.querySelector('[data-role="module-weighted"]'),
+						};
+					});
+				});
+			}
+
+			function updateModules() {
+				semesters.forEach((semester) => {
+					semester.modules.forEach((module) => {
+						const average = computeModuleAverage(module);
+						const weighted = average * module.coefficient;
+
+						if (module.elements.ecd && module.ecd !== null) {
+							animateNumber(module.elements.ecd, module.ecd, 2);
+						}
+						if (module.elements.tp && module.tp !== null) {
+							animateNumber(module.elements.tp, module.tp, 2);
+						}
+						if (module.elements.emd && module.emd !== null) {
+							animateNumber(module.elements.emd, module.emd, 2);
+						}
+
+						animateNumber(module.elements.average, average, 2);
+						setBadge(module.elements.average, average);
+						animateNumber(module.elements.weighted, weighted, 2);
+					});
+				});
+			}
+
+			function updateSummary() {
+				const semesterStats = semesters.map((semester) => computeSemesterStats(semester));
+				const sem1Stats = semesterStats[0];
+				const sem2Stats = semesterStats[1];
+				// Final yearly average = S1 * 0.47 + S2 * 0.53
+				const finalAverage = sem1Stats.average * 0.47 + sem2Stats.average * 0.53;
+				const totalWeighted = sem1Stats.weightedSum + sem2Stats.weightedSum;
+
+				const sem1AvgEl = document.getElementById("sem1-average");
+				const sem2AvgEl = document.getElementById("sem2-average");
+				const sem1WeightedEl = document.getElementById("sem1-weighted");
+				const sem2WeightedEl = document.getElementById("sem2-weighted");
+
+				animateNumber(sem1AvgEl, sem1Stats.average, 2);
+				animateNumber(sem2AvgEl, sem2Stats.average, 2);
+				animateNumber(sem1WeightedEl, sem1Stats.weightedSum, 2);
+				animateNumber(sem2WeightedEl, sem2Stats.weightedSum, 2);
+				setBadge(sem1AvgEl, sem1Stats.average);
+				setBadge(sem2AvgEl, sem2Stats.average);
+
+				const summarySem1 = document.getElementById("summary-sem1");
+				const summarySem2 = document.getElementById("summary-sem2");
+				const summaryFinal = document.getElementById("summary-final");
+				const summaryWeighted = document.getElementById("summary-weighted");
+				const summaryStatus = document.getElementById("summary-status");
+
+				animateNumber(summarySem1, sem1Stats.average, 2);
+				animateNumber(summarySem2, sem2Stats.average, 2);
+				animateNumber(summaryFinal, finalAverage, 2);
+				animateNumber(summaryWeighted, totalWeighted, 2);
+
+				setBadge(summarySem1, sem1Stats.average);
+				setBadge(summarySem2, sem2Stats.average);
+				setBadge(summaryFinal, finalAverage);
+
+				let statusLabel = "Admis";
+				if (finalAverage < 10) {
+					statusLabel = "Ajourne";
+				} else if (finalAverage < 12) {
+					statusLabel = "Passable";
+				} else {
+					statusLabel = "Admis";
+				}
+
+				summaryStatus.textContent = statusLabel;
+				summaryStatus.dataset.value = finalAverage;
+				setBadge(summaryStatus, finalAverage);
+			}
+
+			function updateAll() {
+				updateModules();
+				updateSummary();
+			}
+
+			function handleStepClick(event) {
+				const button = event.target.closest(".btn-step");
+				if (!button) {
+					return;
+				}
+
+				const control = button.closest(".control");
+				if (!control || control.classList.contains("control--disabled")) {
+					return;
+				}
+
+				const semIndex = Number(control.dataset.sem);
+				const moduleIndex = Number(control.dataset.module);
+				const noteKey = control.dataset.note;
+				const direction = Number(button.dataset.dir);
+				const module = semesters[semIndex].modules[moduleIndex];
+
+				module[noteKey] = clampToStep(module[noteKey] + direction * STEP);
+				updateAll();
+			}
+
+			function handleManualInput(event) {
+				const input = event.target.closest(".control-input");
+				if (!input) {
+					return;
+				}
+
+				const control = input.closest(".control");
+				if (!control || control.classList.contains("control--disabled")) {
+					return;
+				}
+
+				const semIndex = Number(control.dataset.sem);
+				const moduleIndex = Number(control.dataset.module);
+				const noteKey = control.dataset.note;
+				const module = semesters[semIndex].modules[moduleIndex];
+				const raw = Number(String(input.value).replace(",", "."));
+
+				if (Number.isNaN(raw)) {
+					return;
+				}
+
+				module[noteKey] = clampToStep(raw);
+				updateAll();
+			}
+
+			function handleInputBlur(event) {
+				const input = event.target.closest(".control-input");
+				if (!input) {
+					return;
+				}
+
+				const control = input.closest(".control");
+				if (!control || control.classList.contains("control--disabled")) {
+					return;
+				}
+
+				const semIndex = Number(control.dataset.sem);
+				const moduleIndex = Number(control.dataset.module);
+				const noteKey = control.dataset.note;
+				const module = semesters[semIndex].modules[moduleIndex];
+				const raw = Number(String(input.value).replace(",", "."));
+
+				if (Number.isNaN(raw)) {
+					animateNumber(input, module[noteKey], 2);
+					return;
+				}
+
+				module[noteKey] = clampToStep(raw);
+				updateAll();
+			}
+
+			document.addEventListener("click", handleStepClick);
+			document.addEventListener("input", handleManualInput);
+			document.addEventListener("blur", handleInputBlur, true);
+
+			renderSemesters();
+			updateAll();
+
+			window.addEventListener("load", () => {
+				document.body.classList.add("loaded");
+			});
+		</script>
+	</body>
+</html>
