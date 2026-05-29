@@ -251,6 +251,14 @@
 				font-weight: 700;
 			}
 
+			.floating-tip {
+				display: none;
+				font-size: 0.6rem;
+				letter-spacing: 0.18em;
+				text-transform: uppercase;
+				color: var(--text-dim);
+			}
+
 			.section-header {
 				display: flex;
 				flex-wrap: wrap;
@@ -632,7 +640,36 @@
 				}
 
 				.floating-content {
-					justify-content: space-between;
+					flex-direction: column;
+					align-items: stretch;
+					gap: 6px;
+				}
+
+				.floating-item {
+					min-width: 0;
+					width: 100%;
+					align-items: center;
+					text-align: center;
+				}
+
+				.floating-summary[data-active-semester="s2"] #floating-right {
+					order: 0;
+				}
+
+				.floating-summary[data-active-semester="s2"] #floating-left {
+					order: 1;
+				}
+
+				.floating-item::after {
+					display: none;
+				}
+
+				.floating-item > span:not(.floating-tip) {
+					display: none;
+				}
+
+				.floating-tip {
+					display: block;
 				}
 
 				.hero {
@@ -710,10 +747,12 @@
 				<div class="floating-item" id="floating-left">
 					<span id="floating-left-label">Semester 1</span>
 					<strong class="badge" id="floating-left-value">--</strong>
+					<span class="floating-tip" id="floating-left-tip"></span>
 				</div>
 				<div class="floating-item" id="floating-right">
 					<span id="floating-right-label">General</span>
 					<strong class="badge" id="floating-right-value">--</strong>
+					<span class="floating-tip" id="floating-right-tip"></span>
 				</div>
 			</div>
 		</div>
@@ -1240,6 +1279,9 @@
 				const floatingRightValue = document.getElementById("floating-right-value");
 				const floatingLeftLabel = document.getElementById("floating-left-label");
 				const floatingRightLabel = document.getElementById("floating-right-label");
+				const floatingLeftTip = document.getElementById("floating-left-tip");
+				const floatingRightTip = document.getElementById("floating-right-tip");
+	 			const floatingSummary = document.getElementById("floating-summary");
 
 				animateNumber(summarySem1, sem1Stats.average, 2);
 				animateNumber(summarySem2, sem2Stats.average, 2);
@@ -1264,6 +1306,9 @@
 				setBadge(summaryStatus, finalAverage);
 
 				const activeSemester = document.body.dataset.activeSemester || "s1";
+				if (floatingSummary) {
+					floatingSummary.dataset.activeSemester = activeSemester;
+				}
 				if (activeSemester === "s2") {
 					floatingLeftLabel.textContent = "General";
 					floatingRightLabel.textContent = "Semester 2";
@@ -1271,6 +1316,8 @@
 					floatingRightItem.dataset.tooltip = "Moyenne semestre 2";
 					floatingLeftItem.title = "Moyenne generale";
 					floatingRightItem.title = "Moyenne semestre 2";
+					floatingLeftTip.textContent = "Moyenne generale";
+					floatingRightTip.textContent = "Semestre 2";
 					animateNumber(floatingLeftValue, finalAverage, 2);
 					animateNumber(floatingRightValue, sem2Stats.average, 2);
 					setBadge(floatingLeftValue, finalAverage);
@@ -1282,6 +1329,8 @@
 					floatingRightItem.dataset.tooltip = "Moyenne generale";
 					floatingLeftItem.title = "Moyenne semestre 1";
 					floatingRightItem.title = "Moyenne generale";
+					floatingLeftTip.textContent = "Semestre 1";
+					floatingRightTip.textContent = "Moyenne generale";
 					animateNumber(floatingLeftValue, sem1Stats.average, 2);
 					animateNumber(floatingRightValue, finalAverage, 2);
 					setBadge(floatingLeftValue, sem1Stats.average);
