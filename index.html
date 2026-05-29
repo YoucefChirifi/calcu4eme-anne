@@ -163,6 +163,54 @@
 				gap: 20px;
 			}
 
+			.floating-summary {
+				position: fixed;
+				left: 50%;
+				bottom: 18px;
+				transform: translateX(-50%) translateY(20px);
+				opacity: 0;
+				pointer-events: none;
+				z-index: 6;
+				background: rgba(8, 14, 26, 0.82);
+				border: 1px solid rgba(228, 192, 122, 0.3);
+				box-shadow: 0 16px 40px rgba(2, 6, 16, 0.5);
+				backdrop-filter: blur(18px);
+				border-radius: 999px;
+				padding: 10px 14px;
+				transition: opacity 0.3s ease, transform 0.3s ease;
+			}
+
+			.floating-summary.is-visible {
+				opacity: 1;
+				transform: translateX(-50%) translateY(0);
+				pointer-events: auto;
+			}
+
+			.floating-content {
+				display: flex;
+				gap: 10px;
+				align-items: center;
+			}
+
+			.floating-item {
+				display: flex;
+				flex-direction: column;
+				gap: 2px;
+				min-width: 120px;
+			}
+
+			.floating-item span {
+				font-size: 0.65rem;
+				letter-spacing: 0.2em;
+				text-transform: uppercase;
+				color: var(--text-dim);
+			}
+
+			.floating-item strong {
+				font-size: 1rem;
+				font-weight: 700;
+			}
+
 			.section-header {
 				display: flex;
 				flex-wrap: wrap;
@@ -298,6 +346,20 @@
 				text-align: center;
 				outline: none;
 				appearance: textfield;
+			}
+
+			.control--emd {
+				border-color: rgba(241, 217, 156, 0.6);
+				box-shadow: inset 0 0 0 1px rgba(241, 217, 156, 0.2);
+			}
+
+			.control--emd .btn-step {
+				border-color: rgba(241, 217, 156, 0.7);
+				background: rgba(241, 217, 156, 0.18);
+			}
+
+			.control--emd .control-input {
+				color: var(--gold-400);
 			}
 
 			.control-input::-webkit-outer-spin-button,
@@ -482,6 +544,17 @@
 					padding: 32px 16px 48px;
 				}
 
+				.floating-summary {
+					left: 16px;
+					right: 16px;
+					transform: translateY(16px);
+					border-radius: 20px;
+				}
+
+				.floating-content {
+					justify-content: space-between;
+				}
+
 				.hero {
 					text-align: center;
 					justify-content: center;
@@ -552,6 +625,18 @@
 	</head>
 	<body>
 		<div class="page-loader" aria-hidden="true"></div>
+		<div class="floating-summary" id="floating-summary" aria-live="polite">
+			<div class="floating-content" id="floating-content">
+				<div class="floating-item" id="floating-left">
+					<span id="floating-left-label">Semester 1</span>
+					<strong class="badge" id="floating-left-value">--</strong>
+				</div>
+				<div class="floating-item" id="floating-right">
+					<span id="floating-right-label">General</span>
+					<strong class="badge" id="floating-right-value">--</strong>
+				</div>
+			</div>
+		</div>
 		<div class="page">
 			<header class="hero">
 				<div>
@@ -929,8 +1014,9 @@
 					`;
 				}
 
+				const extraClass = noteKey === "emd" ? " control--emd" : "";
 				return `
-					<div class="control" data-sem="${semIndex}" data-module="${moduleIndex}" data-note="${noteKey}">
+					<div class="control${extraClass}" data-sem="${semIndex}" data-module="${moduleIndex}" data-note="${noteKey}">
 						<button class="btn-step" data-dir="-1" aria-label="Decrease ${noteKey}">-</button>
 						<input
 							class="control-input value"
@@ -1056,6 +1142,10 @@
 				const summaryFinal = document.getElementById("summary-final");
 				const summaryWeighted = document.getElementById("summary-weighted");
 				const summaryStatus = document.getElementById("summary-status");
+				const floatingLeftValue = document.getElementById("floating-left-value");
+				const floatingRightValue = document.getElementById("floating-right-value");
+				const floatingLeftLabel = document.getElementById("floating-left-label");
+				const floatingRightLabel = document.getElementById("floating-right-label");
 
 				animateNumber(summarySem1, sem1Stats.average, 2);
 				animateNumber(summarySem2, sem2Stats.average, 2);
@@ -1078,6 +1168,23 @@
 				summaryStatus.textContent = statusLabel;
 				summaryStatus.dataset.value = finalAverage;
 				setBadge(summaryStatus, finalAverage);
+
+				const activeSemester = document.body.dataset.activeSemester || "s1";
+				if (activeSemester === "s2") {
+					floatingLeftLabel.textContent = "General";
+					floatingRightLabel.textContent = "Semester 2";
+					animateNumber(floatingLeftValue, finalAverage, 2);
+					animateNumber(floatingRightValue, sem2Stats.average, 2);
+					setBadge(floatingLeftValue, finalAverage);
+					setBadge(floatingRightValue, sem2Stats.average);
+				} else {
+					floatingLeftLabel.textContent = "Semester 1";
+					floatingRightLabel.textContent = "General";
+					animateNumber(floatingLeftValue, sem1Stats.average, 2);
+					animateNumber(floatingRightValue, finalAverage, 2);
+					setBadge(floatingLeftValue, sem1Stats.average);
+					setBadge(floatingRightValue, finalAverage);
+				}
 			}
 
 			function updateAll() {
@@ -1163,8 +1270,40 @@
 			document.addEventListener("blur", handleInputBlur, true);
 			document.addEventListener("keydown", handleInputKeydown);
 
+			const floatingSummary = document.getElementById("floating-summary");
+			function updateFloatingVisibility() {
+				const isVisible = window.scrollY > 120;
+				floatingSummary.classList.toggle("is-visible", isVisible);
+			}
+
+			const semester1Section = document.querySelector('[aria-label="Semester 1"]');
+			const semester2Section = document.querySelector('[aria-label="Semester 2"]');
+
+			if (semester1Section && semester2Section) {
+				const observer = new IntersectionObserver(
+					(entries) => {
+						entries.forEach((entry) => {
+							if (entry.isIntersecting && entry.target === semester2Section) {
+								document.body.dataset.activeSemester = "s2";
+								updateSummary();
+							}
+							if (entry.isIntersecting && entry.target === semester1Section) {
+								document.body.dataset.activeSemester = "s1";
+								updateSummary();
+							}
+						});
+					},
+					{ threshold: 0.45 }
+				);
+
+				observer.observe(semester1Section);
+				observer.observe(semester2Section);
+			}
+
 			renderSemesters();
 			updateAll();
+			updateFloatingVisibility();
+			window.addEventListener("scroll", updateFloatingVisibility, { passive: true });
 
 			window.addEventListener("load", () => {
 				document.body.classList.add("loaded");
