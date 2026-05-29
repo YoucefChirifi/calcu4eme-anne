@@ -482,6 +482,49 @@
 					padding: 32px 16px 48px;
 				}
 
+				.hero {
+					text-align: center;
+					justify-content: center;
+				}
+
+				.section-header {
+					flex-direction: column;
+					align-items: flex-start;
+				}
+
+				.stat-group {
+					width: 100%;
+				}
+
+				.stat {
+					flex: 1 1 160px;
+					min-width: 0;
+				}
+
+				.module-row {
+					padding: 14px;
+					gap: 8px;
+				}
+
+				.module-title {
+					font-size: 0.95rem;
+				}
+
+				.control {
+					padding: 8px 12px;
+					min-height: 46px;
+				}
+
+				.control-input {
+					width: 96px;
+				}
+
+				.btn-step {
+					width: 38px;
+					height: 38px;
+					font-size: 1rem;
+				}
+
 				.hero-meta {
 					width: 100%;
 				}
@@ -489,6 +532,20 @@
 				.meta-chip {
 					flex: 1 1 100%;
 					text-align: center;
+				}
+			}
+
+			@media (max-width: 390px) {
+				.hero h1 {
+					font-size: 1.7rem;
+				}
+
+				.stat {
+					padding: 10px 12px;
+				}
+
+				.summary-item strong {
+					font-size: 1.1rem;
 				}
 			}
 		</style>
@@ -775,6 +832,9 @@
 
 			function animateNumber(el, value, decimals = 2) {
 				const previous = Number(el.dataset.value ?? "0");
+				if (el.tagName === "INPUT" && document.activeElement === el) {
+					return;
+				}
 				if (Number.isNaN(previous) || prefersReducedMotion) {
 					if (el.tagName === "INPUT") {
 						el.value = value.toFixed(decimals);
@@ -954,13 +1014,13 @@
 						const average = computeModuleAverage(module);
 						const weighted = average * module.coefficient;
 
-						if (module.elements.ecd && module.ecd !== null) {
+						if (module.elements.ecd && module.ecd !== null && document.activeElement !== module.elements.ecd) {
 							animateNumber(module.elements.ecd, module.ecd, 2);
 						}
-						if (module.elements.tp && module.tp !== null) {
+						if (module.elements.tp && module.tp !== null && document.activeElement !== module.elements.tp) {
 							animateNumber(module.elements.tp, module.tp, 2);
 						}
-						if (module.elements.emd && module.emd !== null) {
+						if (module.elements.emd && module.emd !== null && document.activeElement !== module.elements.emd) {
 							animateNumber(module.elements.emd, module.emd, 2);
 						}
 
@@ -1046,31 +1106,6 @@
 				updateAll();
 			}
 
-			function handleManualInput(event) {
-				const input = event.target.closest(".control-input");
-				if (!input) {
-					return;
-				}
-
-				const control = input.closest(".control");
-				if (!control || control.classList.contains("control--disabled")) {
-					return;
-				}
-
-				const semIndex = Number(control.dataset.sem);
-				const moduleIndex = Number(control.dataset.module);
-				const noteKey = control.dataset.note;
-				const module = semesters[semIndex].modules[moduleIndex];
-				const raw = Number(String(input.value).replace(",", "."));
-
-				if (Number.isNaN(raw)) {
-					return;
-				}
-
-				module[noteKey] = clampToStep(raw);
-				updateAll();
-			}
-
 			function handleInputBlur(event) {
 				const input = event.target.closest(".control-input");
 				if (!input) {
@@ -1097,9 +1132,36 @@
 				updateAll();
 			}
 
+			function handleInputKeydown(event) {
+				const input = event.target.closest(".control-input");
+				if (!input) {
+					return;
+				}
+
+				if (event.key === "Enter") {
+					event.preventDefault();
+					input.blur();
+					return;
+				}
+
+				if (event.key === "Escape") {
+					const control = input.closest(".control");
+					if (!control || control.classList.contains("control--disabled")) {
+						return;
+					}
+
+					const semIndex = Number(control.dataset.sem);
+					const moduleIndex = Number(control.dataset.module);
+					const noteKey = control.dataset.note;
+					const module = semesters[semIndex].modules[moduleIndex];
+					animateNumber(input, module[noteKey], 2);
+					input.blur();
+				}
+			}
+
 			document.addEventListener("click", handleStepClick);
-			document.addEventListener("input", handleManualInput);
 			document.addEventListener("blur", handleInputBlur, true);
+			document.addEventListener("keydown", handleInputKeydown);
 
 			renderSemesters();
 			updateAll();
