@@ -201,6 +201,7 @@
 
 			.floating-content {
 				display: flex;
+				flex-direction: column;
 				gap: 10px;
 				align-items: center;
 			}
@@ -210,6 +211,7 @@
 				flex-direction: column;
 				gap: 2px;
 				min-width: 120px;
+				text-align: center;
 				position: relative;
 			}
 
@@ -228,6 +230,9 @@
 				letter-spacing: 0.12em;
 				text-transform: uppercase;
 				white-space: nowrap;
+				max-width: 240px;
+				text-align: center;
+				line-height: 1.4;
 				opacity: 0;
 				pointer-events: none;
 				transition: opacity 0.2s ease, transform 0.2s ease;
@@ -235,6 +240,11 @@
 
 			.floating-item:hover::after,
 			.floating-item:focus-within::after {
+				opacity: 1;
+				transform: translateX(-50%) translateY(0);
+			}
+
+			.floating-item.is-open::after {
 				opacity: 1;
 				transform: translateX(-50%) translateY(0);
 			}
@@ -633,9 +643,10 @@
 				}
 
 				.floating-summary {
-					left: 16px;
-					right: 16px;
-					transform: translateY(16px);
+					left: 50%;
+					right: auto;
+					width: min(320px, calc(100% - 32px));
+					transform: translateX(-50%) translateY(16px);
 					border-radius: 20px;
 				}
 
@@ -652,16 +663,14 @@
 					text-align: center;
 				}
 
-				.floating-summary[data-active-semester="s2"] #floating-right {
-					order: 0;
-				}
-
-				.floating-summary[data-active-semester="s2"] #floating-left {
-					order: 1;
-				}
-
 				.floating-item::after {
 					display: none;
+				}
+
+				.floating-item.is-open::after {
+					display: block;
+					white-space: normal;
+					max-width: calc(100vw - 64px);
 				}
 
 				.floating-item > span:not(.floating-tip) {
@@ -730,6 +739,12 @@
 					display: none;
 				}
 
+				.floating-item.is-open::after {
+					display: block;
+					white-space: normal;
+					max-width: calc(100vw - 64px);
+				}
+
 				.floating-item > span:not(.floating-tip) {
 					display: none;
 				}
@@ -760,10 +775,12 @@
 			<div class="floating-content" id="floating-content">
 				<div class="floating-item" id="floating-left" tabindex="0">
 					<span id="floating-left-label">Semester 1</span>
+					<span class="floating-tip" id="floating-left-tip">Semester 1</span>
 					<strong class="badge" id="floating-left-value">--</strong>
 				</div>
 				<div class="floating-item" id="floating-right" tabindex="0">
 					<span id="floating-right-label">General</span>
+					<span class="floating-tip" id="floating-right-tip">General</span>
 					<strong class="badge" id="floating-right-value">--</strong>
 				</div>
 			</div>
@@ -1322,32 +1339,27 @@
 					floatingSummary.dataset.activeSemester = activeSemester;
 				}
 				if (activeSemester === "s2") {
-					floatingLeftLabel.textContent = "Moyenne generale";
-					floatingRightLabel.textContent = "Semestre 2";
-					floatingLeftItem.dataset.tooltip = "Moyenne generale";
-					floatingRightItem.dataset.tooltip = "Moyenne semestre 2";
-					floatingLeftItem.title = "Moyenne generale";
-					floatingRightItem.title = "Moyenne semestre 2";
-					floatingLeftTip.textContent = "Moyenne generale";
-					floatingRightTip.textContent = "Semestre 2";
-					animateNumber(floatingLeftValue, finalAverage, 2);
-					animateNumber(floatingRightValue, sem2Stats.average, 2);
-					setBadge(floatingLeftValue, finalAverage);
-					setBadge(floatingRightValue, sem2Stats.average);
+					floatingLeftLabel.textContent = "Semestre 2";
+					floatingLeftItem.dataset.tooltip = "Moyenne semestre 2";
+					floatingLeftItem.title = "Moyenne semestre 2";
+					if (floatingLeftTip) floatingLeftTip.textContent = "Semestre 2";
+					animateNumber(floatingLeftValue, sem2Stats.average, 2);
+					setBadge(floatingLeftValue, sem2Stats.average);
 				} else {
 					floatingLeftLabel.textContent = "Semestre 1";
-					floatingRightLabel.textContent = "Moyenne generale";
 					floatingLeftItem.dataset.tooltip = "Moyenne semestre 1";
-					floatingRightItem.dataset.tooltip = "Moyenne generale";
 					floatingLeftItem.title = "Moyenne semestre 1";
-					floatingRightItem.title = "Moyenne generale";
-					floatingLeftTip.textContent = "Semestre 1";
-					floatingRightTip.textContent = "Moyenne generale";
+					if (floatingLeftTip) floatingLeftTip.textContent = "Semestre 1";
 					animateNumber(floatingLeftValue, sem1Stats.average, 2);
-					animateNumber(floatingRightValue, finalAverage, 2);
 					setBadge(floatingLeftValue, sem1Stats.average);
-					setBadge(floatingRightValue, finalAverage);
 				}
+
+				floatingRightLabel.textContent = "Moyenne generale";
+				floatingRightItem.dataset.tooltip = "Moyenne generale";
+				floatingRightItem.title = "Moyenne generale";
+				if (floatingRightTip) floatingRightTip.textContent = "Moyenne generale";
+				animateNumber(floatingRightValue, finalAverage, 2);
+				setBadge(floatingRightValue, finalAverage);
 			}
 
 			function updateAll() {
@@ -1447,11 +1459,35 @@
 			document.addEventListener("click", handleMetaChipClick);
 			document.addEventListener("blur", handleInputBlur, true);
 			document.addEventListener("keydown", handleInputKeydown);
+			document.addEventListener("click", handleFloatingItemToggle);
 
 			const floatingSummary = document.getElementById("floating-summary");
+			const floatingItems = Array.from(document.querySelectorAll(".floating-item"));
+			function closeFloatingTips(except) {
+				floatingItems.forEach((item) => {
+					if (item !== except) {
+						item.classList.remove("is-open");
+					}
+				});
+			}
+
+			function handleFloatingItemToggle(event) {
+				const item = event.target.closest(".floating-item");
+				if (!item || !floatingSummary || !floatingSummary.contains(item)) {
+					closeFloatingTips();
+					return;
+				}
+				const shouldOpen = !item.classList.contains("is-open");
+				closeFloatingTips(item);
+				item.classList.toggle("is-open", shouldOpen);
+			}
+
 			function updateFloatingVisibility() {
 				const isVisible = window.scrollY > 120;
 				floatingSummary.classList.toggle("is-visible", isVisible);
+				if (!isVisible) {
+					closeFloatingTips();
+				}
 			}
 
 			const semester1Section = document.querySelector('[aria-label="Semester 1"]');
