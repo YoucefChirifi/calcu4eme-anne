@@ -725,6 +725,20 @@
 				}
 			}
 
+			@media (hover: none) and (pointer: coarse) {
+				.floating-item::after {
+					display: none;
+				}
+
+				.floating-item > span:not(.floating-tip) {
+					display: none;
+				}
+
+				.floating-tip {
+					display: block;
+				}
+			}
+
 			@media (max-width: 390px) {
 				.hero h1 {
 					font-size: 1.7rem;
@@ -744,15 +758,13 @@
 		<div class="page-loader" aria-hidden="true"></div>
 		<div class="floating-summary" id="floating-summary" aria-live="polite">
 			<div class="floating-content" id="floating-content">
-				<div class="floating-item" id="floating-left">
+				<div class="floating-item" id="floating-left" tabindex="0">
 					<span id="floating-left-label">Semester 1</span>
 					<strong class="badge" id="floating-left-value">--</strong>
-					<span class="floating-tip" id="floating-left-tip"></span>
 				</div>
-				<div class="floating-item" id="floating-right">
+				<div class="floating-item" id="floating-right" tabindex="0">
 					<span id="floating-right-label">General</span>
 					<strong class="badge" id="floating-right-value">--</strong>
-					<span class="floating-tip" id="floating-right-tip"></span>
 				</div>
 			</div>
 		</div>
@@ -977,7 +989,7 @@
 						{
 							name: "Communication multimedia",
 							meta: "Media",
-							coefficient: 3,
+							coefficient: 4,
 							ecd: null,
 							tp: 12,
 							emd: 12,
@@ -985,7 +997,7 @@
 						{
 							name: "Optimisation numerique",
 							meta: "Numerical methods",
-							coefficient: 3,
+							coefficient: 4,
 							ecd: null,
 							tp: 5,
 							emd: 5,
@@ -1001,7 +1013,7 @@
 						{
 							name: "Projet 2",
 							meta: "Project studio",
-							coefficient: 2,
+							coefficient: 3,
 							ecd: 11,
 							tp: null,
 							emd: 11,
@@ -1310,8 +1322,8 @@
 					floatingSummary.dataset.activeSemester = activeSemester;
 				}
 				if (activeSemester === "s2") {
-					floatingLeftLabel.textContent = "General";
-					floatingRightLabel.textContent = "Semester 2";
+					floatingLeftLabel.textContent = "Moyenne generale";
+					floatingRightLabel.textContent = "Semestre 2";
 					floatingLeftItem.dataset.tooltip = "Moyenne generale";
 					floatingRightItem.dataset.tooltip = "Moyenne semestre 2";
 					floatingLeftItem.title = "Moyenne generale";
@@ -1323,8 +1335,8 @@
 					setBadge(floatingLeftValue, finalAverage);
 					setBadge(floatingRightValue, sem2Stats.average);
 				} else {
-					floatingLeftLabel.textContent = "Semester 1";
-					floatingRightLabel.textContent = "General";
+					floatingLeftLabel.textContent = "Semestre 1";
+					floatingRightLabel.textContent = "Moyenne generale";
 					floatingLeftItem.dataset.tooltip = "Moyenne semestre 1";
 					floatingRightItem.dataset.tooltip = "Moyenne generale";
 					floatingLeftItem.title = "Moyenne semestre 1";
